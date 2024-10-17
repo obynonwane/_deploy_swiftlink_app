@@ -2,7 +2,7 @@
 
 # migrate_up_local: apply all migrations locally
 migrate_up_local: ## Apply all migrations locally
-	migrate -path ../polygon_swiftlink_db_migrations/migrations -database "postgresql://admin:password@localhost:5432/polygon_swiftlink_db?sslmode=disable" -verbose up
+	migrate -path ./polygon_swiftlink_db_migrations/migrations -database "postgresql://admin:password@localhost:5432/polygon_swiftlink_db?sslmode=disable" -verbose up
 
 # migrate_down_local: rollback all migrations locally
 migrate_down_local: ## Rollback all migrations locally
