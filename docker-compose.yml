@@ -43,7 +43,7 @@ services:
 
   broker-service:
     container_name: polygon_swiftlink-broker-service
-    image: biostech/broker-service:1.0.0
+    image: biostech/polygon-swiftlink-broker-service:1.0.0
     restart: always
     ports:
       - "8080:8080"
@@ -54,7 +54,7 @@ services:
       - .env
 
   authentication-service:
-    image: biostech/broker-service:1.0.0
+    image: biostech/polygon-swiftlink-authentication-service:1.0.0
     restart: always
     container_name: polygon_swiftlink-auth-service
     deploy:
@@ -66,7 +66,7 @@ services:
       - db_init
 
   service-api:
-    image: biostech/broker-service:1.0.0
+    image: biostech/polygon-swiftlink-api-service:1.0.0
     restart: always
     container_name: polygon_swiftlink-service_api
     deploy:
@@ -129,3 +129,6 @@ services:
   #     VITE_APP_SERVER_API_PROJ: "${VITE_APP_SERVER_API_PROJ}"
   #     VITE_APP_DEV_SERVER_API_PROJ: "${VITE_APP_DEV_SERVER_API_PROJ}"
   #     VITE_APP__PLATFORM: "${VITE_APP__PLATFORM}"
+# AUTHENTICATION_IMAGE := biostech/polygon-swiftlink-authentication-service:1.0.0
+# BROKER_IMAGE := biostech/polygon-swiftlink-broker-service:1.0.0
+# SERVICE_IMAGE := biostech/polygon-swiftlink-api-service:1.0.0
