@@ -18,4 +18,4 @@ dropdb: ## Drop the database
 
 # createdb: create the database
 createdb: ## Create the database
-	docker exec -it postgres createdb --username=admin --owner=admin polygon_swiftlink_db
+	docker exec -it postgres createdb --username=a	dmin --owner=admin polygon_swiftlink_db
