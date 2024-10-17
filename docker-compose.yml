@@ -1,0 +1,131 @@
+services:
+  app:
+    image: "jc21/nginx-proxy-manager:latest"
+    restart: unless-stopped
+    ports:
+      - "80:80" # Public HTTP Port
+      - "443:443" # Public HTTPS Port
+      - "81:81" # Admin Web Port
+    environment:
+      # Mysql/Maria connection parameters:
+      DB_MYSQL_HOST: "${DB_MYSQL_HOST}"
+      DB_MYSQL_PORT: 3306
+      DB_MYSQL_USER: "${DB_MYSQL_USER}"
+      DB_MYSQL_PASSWORD: "${DB_MYSQL_PASSWORD}"
+      DB_MYSQL_NAME: "${DB_MYSQL_NAME}"
+    volumes:
+      - ./data:/data
+      - ./letsencrypt:/etc/letsencrypt
+    depends_on:
+      - db
+
+  db:
+    image: "jc21/mariadb-aria:latest"
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+      MYSQL_DATABASE: "${MYSQL_DATABASE}"
+      MYSQL_USER: "${MYSQL_USER}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+    volumes:
+      - ./mysql:/var/lib/mysql
+
+  portainer-ce:
+    ports:
+      - "9000:9000"
+      - "8000:8000"
+    container_name: portainer
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /home/docker/portainer:/data
+    image: "portainer/portainer-ce:latest"
+
+  broker-service:
+    container_name: polygon_swiftlink-broker-service
+    image: biostech/broker-service:1.0.0
+    restart: always
+    ports:
+      - "8080:8080"
+    deploy:
+      mode: replicated
+      replicas: 1
+    env_file:
+      - .env
+
+  authentication-service:
+    image: biostech/broker-service:1.0.0
+    restart: always
+    container_name: polygon_swiftlink-auth-service
+    deploy:
+      mode: replicated
+      replicas: 1
+    env_file:
+      - .env
+    depends_on:
+      - db_init
+
+  service-api:
+    image: biostech/broker-service:1.0.0
+    restart: always
+    container_name: polygon_swiftlink-service_api
+    deploy:
+      mode: replicated
+      replicas: 1
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    restart: always
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_DB: "${POSTGRES_DB}"
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    env_file:
+      - docker.env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -q -d ${POSTGRES_DB} -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  db_init:
+    image: postgres:latest
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_DB: "${POSTGRES_DB}"
+    entrypoint:
+      [
+        "sh",
+        "-c",
+        "until pg_isready -h postgres -U ${POSTGRES_USER}; do echo waiting for postgres; sleep 2; done; PGPASSWORD=${POSTGRES_PASSWORD} createdb -h postgres -U ${POSTGRES_USER} --owner=${POSTGRES_USER} ${POSTGRES_DB}",
+      ]
+
+  # project-creator-frontend-service:
+  #   container_name: project-creator-frontend-service
+  #   image: "biostech/project-creator-frontend-service:1.0.0"
+  #   restart: always
+  #   ports:
+  #     - "4001:4001"
+  #   deploy:
+  #     mode: replicated
+  #     replicas: 1
+  #   environment:
+  #     VITE_APP_SERVER_API_PROJ: "${VITE_APP_SERVER_API_PROJ}"
+  #     VITE_APP_DEV_SERVER_API_PROJ: "${VITE_APP_DEV_SERVER_API_PROJ}"
+  #     VITE_APP__PLATFORM: "${VITE_APP__PLATFORM}"
