@@ -19,3 +19,6 @@ dropdb: ## Drop the database
 # createdb: create the database
 createdb: ## Create the database
 	docker exec -it postgres createdb --username=a	dmin --owner=admin polygon_swiftlink_db
+
+
+## https://www.geeksforgeeks.org/how-to-install-golang-migrate-on-ubuntu/
