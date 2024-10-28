@@ -118,7 +118,7 @@ services:
     image: "biostech/swiftlink-frontend-service:1.0.0"
     restart: always
     ports:
-      - "8001:8001"
+      - "8081:8081"
     deploy:
       mode: replicated
       replicas: 1
